@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nodeserver
-        image: emanfeah/nodeapp:latest
+        image: emanfeah/runway:latest
         ports:
         - containerPort: 3000
         

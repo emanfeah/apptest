@@ -1,49 +1,54 @@
 pipeline {
 
-  environment {
-    dockerimagename = "emanfeah/nodeapp"
-    dockerImage = ""
-  }
+	agent any
 
-  agent any
+	environment {
+		DOCKERHUB_CREDENTIALS = credentials('eman-dockerhub')
+		AWS_ACCESS_KEY_ID     = credentials('AWS_Access_KeyId')
+  		AWS_SECRET_ACCESS_KEY = credentials('AWS_Secret_Key')
 
-  stages {
+	}
 
-    stage('Checkout Source') {
-      steps {
-        git 'https://github.com/shazforiot/nodeapp_test.git'
-      }
-    }
+	stages {
 
-    stage('Build image') {
-      steps{
-        script {
-          dockerImage = docker.build dockerimagename
-        }
-      }
-    }
+		stage('Build') {
 
-    stage('Pushing Image') {
-      environment {
-               registryCredential = 'dockerhublogin'
+			steps {
+				sh 'docker build -t emanfeah/runway:latest .'
+			}
+		}
+
+		stage('Login') {
+
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+		}
+
+		stage('Push') {
+
+			steps {
+				sh 'docker push emanfeah/runway:latest'
+			}
+		}
+		stage('Deploying App to Kubernetes') {
+         steps {
+           script {
+            kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
            }
-      steps{
-        script {
-          docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
-            dockerImage.push("latest")
-          }
+         }
         }
-      }
+
+      
+        stage ("Logout") {
+            steps {
+                sh 'docker logout'
+            }
     }
 
-    stage('Deploying App to Kubernetes') {
-      steps {
-        script {
-          kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
-        }
-      }
-    }
 
-  }
+
+    }
+	 
 
 }
