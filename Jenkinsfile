@@ -11,12 +11,12 @@ pipeline {
 
 	stages {
 
-		stage('Build') {
+		// stage('Build') {
 
-			steps {
-				sh 'docker build -t emanfeah/runway:latest .'
-			}
-		}
+		// 	steps {
+		// 		sh 'docker build -t emanfeah/runway:latest .'
+		// 	}
+		// }
 
 		stage('Login') {
 
